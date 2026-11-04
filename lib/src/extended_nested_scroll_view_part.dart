@@ -66,6 +66,32 @@ class _ExtendedNestedScrollCoordinator extends _NestedScrollCoordinator {
           .nestedPositions
           .where((_ExtendedNestedScrollPosition element) => element.isActived);
       if (actived.isEmpty) {
+        // Prefer the body scroll views their [ExtendedNestedScrollBodyShown]
+        // marks shown; unmarked ones fall back to the visibility checks
+        final List<_ExtendedNestedScrollPosition> shown =
+            <_ExtendedNestedScrollPosition>[];
+        bool anyMarked = false;
+        for (final _ExtendedNestedScrollPosition scrollPosition
+            in _innerController.nestedPositions) {
+          final ScrollableState scrollable =
+              scrollPosition.context as ScrollableState;
+          if (!scrollable.mounted) {
+            continue;
+          }
+          final bool? isShown =
+              ExtendedNestedScrollBodyShown.of(scrollable.context);
+          if (isShown == null) {
+            continue;
+          }
+          anyMarked = true;
+          if (isShown) {
+            shown.add(scrollPosition);
+          }
+        }
+        if (anyMarked) {
+          return shown;
+        }
+
         for (final _ExtendedNestedScrollPosition scrollPosition
             in _innerController.nestedPositions) {
           // TODO(zmtzawqlp): throw exception even mounted is true
