@@ -67,7 +67,8 @@ class _ExtendedNestedScrollCoordinator extends _NestedScrollCoordinator {
           .where((_ExtendedNestedScrollPosition element) => element.isActived);
       if (actived.isEmpty) {
         // Prefer the body scroll views their [ExtendedNestedScrollBodyShown]
-        // marks shown; unmarked ones fall back to the visibility checks
+        // marks shown. Once any is marked, unmarked ones are never moved; the
+        // visibility checks below run only when none is marked
         final List<_ExtendedNestedScrollPosition> shown =
             <_ExtendedNestedScrollPosition>[];
         bool anyMarked = false;
@@ -78,8 +79,14 @@ class _ExtendedNestedScrollCoordinator extends _NestedScrollCoordinator {
           if (!scrollable.mounted) {
             continue;
           }
-          final bool? isShown =
-              ExtendedNestedScrollBodyShown.of(scrollable.context);
+          // A scroll view being removed this frame can still be mounted, and
+          // looking up its ancestors then asserts, as in the loop below
+          bool? isShown;
+          try {
+            isShown = ExtendedNestedScrollBodyShown.of(scrollable.context);
+          } catch (_) {
+            continue;
+          }
           if (isShown == null) {
             continue;
           }

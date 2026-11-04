@@ -8,7 +8,8 @@ import 'package:flutter/widgets.dart';
 /// on the header), the coordinator moves only the body scroll views marked
 /// shown, instead of guessing from visibility, which fails while the header
 /// pushes the body partly off screen and then moves every kept-alive page.
-/// Body scroll views without a marker fall back to the visibility checks.
+/// The visibility checks are used only when no body scroll view has a
+/// marker; once any has one, unmarked ones are never moved.
 class ExtendedNestedScrollBodyShown extends InheritedWidget {
   /// Creates a marker whose [isShown] is asked each time the coordinator
   /// picks the body scroll views to move, so it never goes stale.
@@ -28,6 +29,7 @@ class ExtendedNestedScrollBodyShown extends InheritedWidget {
         ?.isShown();
   }
 
+  // [of] registers no dependency, so there is never anyone to notify
   @override
   bool updateShouldNotify(ExtendedNestedScrollBodyShown oldWidget) => false;
 }
